@@ -5,11 +5,6 @@ Convert JSON to Swift objects. The Objective-C counterpart can be found here: [J
 
 Parsing JSON in Swift has be likened to a trip through Mordor, then JSONJoy would be using eagles for that trip.
 
-#### Deprecation
-
-The release of Swift 4 brought support for the new `Codable` protocol. This renders most of JSONJoy unneccessary and thus will be deprecated. Version 3.0.2 has been update to support Swift 4 as a means of backward compatibility, but I would encourage the adoption of the new `Codable` protocol. I wrote a post about it [here](vluxe.io/codable-json-swift.html) 
-
-
 First thing is to import the framework. See the Installation instructions on how to add the framework to your project.
 
 ```swift
@@ -27,7 +22,7 @@ First here is some example JSON we have to parse.
     "last_name": "Smith",
     "age": 25,
     "address": {
-        "id": 1,
+        "id": 1
         "street_address": "2nd Street",
         "city": "Bakersfield",
         "state": "CA",
@@ -90,20 +85,13 @@ struct Address : JSONJoy {
     let city: String
     let state: String
     let postalCode: String
-    let streetTwo: String?
 
-    init(_ decoder: JSONLoader) throws {
-        objID = try decoder["id"].get()
-        streetAddress = try decoder["street_address"].get()
-        city = try decoder["city"].get()
-        state = try decoder["state"].get()
-        postalCode = try decoder["postal_code"].get()
-        streetTwo = decoder["street_two"].getOptional()
-        
-        //just an example of "checking" for a property. 
-        if let meta: String = decoder["meta"].getOptional() {
-            print("found some meta info: \(meta)")
-        }
+    init(_ decoder: JSONDecoder) throws {
+        objID = try decoder["id"].getInt()
+        streetAddress = try decoder["street_address"].getString()
+        city = try decoder["city"].getString()
+        state = try decoder["state"].getString()
+        postalCode = try decoder["postal_code"].getString()
     }
 }
 
@@ -113,15 +101,13 @@ struct User : JSONJoy {
     let lastName: String
     let age: Int
     let address: Address
-    let addresses: [Address]
 
-    init(_ decoder: JSONLoader) throws {
-        objID = try decoder["id"].get()
-        firstName = try decoder["first_name"].get()
-        lastName = try decoder["last_name"].get()
-        age = try decoder["age"].get()
+    init(_ decoder: JSONDecoder) throws {
+        objID = try decoder["id"].getInt()
+        firstName = try decoder["first_name"].getString()
+        lastName = try decoder["last_name"].getString()
+        age = try decoder["age"].getInt()
         address = try Address(decoder["address"])
-        addresses = try decoder["addresses"].get() //infers the type and returns a valid array
     }
 }
 ```
@@ -130,7 +116,7 @@ Then when we get the JSON back:
 
 ```swift
 do {
-	var user = try User(JSONLoader(data))
+	var user = try User(JSONDecoder(data))
 	println("city is: \(user.address.city)")
 	//That's it! The object has all the appropriate properties mapped.
 } catch {
@@ -142,16 +128,64 @@ This also has automatic optional validation like most Swift JSON libraries.
 
 ```swift
 //some randomly incorrect key. This will work fine and the property will just be nil.
-firstName = decoder[5]["wrongKey"]["MoreWrong"].getOptional()
+firstName = decoder[5]["wrongKey"]["MoreWrong"].string
 //firstName is nil, but no crashing!
+```
+
+## Array and Dictionary support
+
+```javascript
+{
+	"addresses": [
+	{
+        "id": 1
+        "street_address": "2nd Street",
+        "city": "Bakersfield",
+        "state": "CA",
+        "postal_code": 93309
+     },
+     {
+        "id": 2
+        "street_address": "2nd Street",
+        "city": "Dallas",
+        "state": "TX",
+        "postal_code": 12345
+     }]
+}
+```
+
+```swift
+struct Addresses : JSONJoy {
+    let addresses: [Address]
+	
+    init(_ decoder: JSONDecoder) {
+		guard let addrs = decoder["addresses"].array else {throw JSONError.WrongType}
+		var collect = [Address]()
+		for addrDecoder in addrs {
+			collect.append(Address(addrDecoder))
+		}
+		addresses = collect
+    }
+}
 ```
 
 ## Custom Types
 
-If you to extend a standard Foundation type (you probably won't need to though)
+If you want to extend JSONJoy to have custom types simple use the `rawValue` property.
 
 ```swift
-extension UInt64:   JSONBasicType {}
+public extension JSONDecoder {
+    public var unsignedLong: UInt64? {
+        return (rawValue as? NSNumber)?.unsignedLongLongValue
+    }
+}
+
+struct SomeStruct : JSONJoy {
+    let largeValue: UInt64?
+    init(_ decoder: JSONDecoder) throws {
+        largeValue = decoder.unsignedLong
+    }
+}
 ```
 
 ## SwiftHTTP
@@ -166,20 +200,6 @@ JSONJoy requires at least iOS 7/OSX 10.10 or above.
 
 ## Installation
 
-### Swift Package Manager
-
-Add the project as a dependency to your Package.swift:
-```swift
-import PackageDescription
-
-let package = Package(
-    name: "YourProject",
-    dependencies: [
-        .Package(url: "https://github.com/daltoniam/JSONJoy-Swift", majorVersion: 3)
-    ]
-)
-```
-
 ### CocoaPods
 
 Check out [Get Started](http://cocoapods.org/) tab on [cocoapods.org](http://cocoapods.org/).
@@ -190,7 +210,7 @@ To use JSONJoy-Swift in your project add the following 'Podfile' to your project
 	platform :ios, '8.0'
 	use_frameworks!
 
-	pod 'JSONJoy-Swift', '~> 3.0.2'
+	pod 'JSONJoy-Swift', '~> 2.0.0'
 
 Then run:
 
@@ -213,7 +233,7 @@ $ brew install carthage
 To integrate JSONJoy into your Xcode project using Carthage, specify it in your `Cartfile`:
 
 ```
-github "daltoniam/JSONJoy-Swift" >= 3.0.2
+github "daltoniam/JSONJoy-Swift" >= 2.0.0
 ```
 
 ### Rogue
@@ -240,7 +260,9 @@ If you are running this in an OSX app or on a physical iOS device you will need 
 
 ## TODOs
 
+- [ ] Complete Docs
 - [ ] Add Unit Tests
+- [ ] Add Example Project
 
 ## License
 

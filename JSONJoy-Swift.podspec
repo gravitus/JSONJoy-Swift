@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name         = "JSONJoy-Swift"
-  s.version      = "3.0.3"
+  s.version      = "2.0.1"
   s.summary      = "Convert JSON to Swift objects."
   s.homepage     = "https://github.com/daltoniam/JSONJoy-Swift"
   s.license      = 'Apache License, Version 2.0'
@@ -13,4 +13,5 @@ Pod::Spec.new do |s|
   s.tvos.deployment_target = '9.0'
   s.watchos.deployment_target = '2.0'
   s.source_files = 'Source/*.swift'
+  s.requires_arc = 'true'
 end
