@@ -33,14 +33,14 @@ public enum JSONError: Error {
     case wrongType
 }
 
-open class JSONDecoder {
+open class JSONDec {
     var value: Any?
     
     ///return the value raw
     open var rawValue: Any? {
         return value
     }
-    ///print the description of the JSONDecoder
+    ///print the description of the JSONDec
     open var description: String {
         return self.print()
     }
@@ -90,12 +90,12 @@ open class JSONDecoder {
         return value as? NSError
     }
     //get  the value if it is a dictionary
-    open var dictionary: Dictionary<String,JSONDecoder>? {
-        return value as? Dictionary<String,JSONDecoder>
+    open var dictionary: Dictionary<String,JSONDec>? {
+        return value as? Dictionary<String,JSONDec>
     }
     //get  the value if it is an array
-    open var array: Array<JSONDecoder>? {
-        return value as? Array<JSONDecoder>
+    open var array: Array<JSONDec>? {
+        return value as? Array<JSONDec>
     }
     
     //get the string and have it throw if it doesn't work
@@ -144,7 +144,7 @@ open class JSONDecoder {
     
     //pull the raw values out of an array
     open func getArray<T>(_ collect: inout Array<T>?) {
-        if let array = value as? Array<JSONDecoder> {
+        if let array = value as? Array<JSONDec> {
             if collect == nil {
                 collect = Array<T>()
             }
@@ -157,7 +157,7 @@ open class JSONDecoder {
     }
     ///pull the raw values out of a dictionary.
     open func getDictionary<T>(_ collect: inout Dictionary<String,T>?) {
-        if let dictionary = value as? Dictionary<String,JSONDecoder> {
+        if let dictionary = value as? Dictionary<String,JSONDec> {
             if collect == nil {
                 collect = Dictionary<String,T>()
             }
@@ -186,15 +186,15 @@ open class JSONDecoder {
             }
         }
         if let array = rawObject as? NSArray {
-            var collect = [JSONDecoder]()
+            var collect = [JSONDec]()
             for val: Any in array {
-                collect.append(JSONDecoder(val, isSub: true))
+                collect.append(JSONDec(val, isSub: true))
             }
             value = collect as Any?
         } else if let dict = rawObject as? NSDictionary {
-            var collect = Dictionary<String,JSONDecoder>()
+            var collect = Dictionary<String,JSONDec>()
             for (key,val) in dict {
-                collect[key as! String] = JSONDecoder(val as AnyObject, isSub: true)
+                collect[key as! String] = JSONDec(val as AnyObject, isSub: true)
             }
             value = collect as Any?
         } else {
@@ -202,25 +202,25 @@ open class JSONDecoder {
         }
     }
     ///Array access support
-    open subscript(index: Int) -> JSONDecoder {
+    open subscript(index: Int) -> JSONDec {
         get {
             if let array = self.value as? NSArray {
                 if array.count > index {
-                    return array[index] as! JSONDecoder
+                    return array[index] as! JSONDec
                 }
             }
-            return JSONDecoder(createError("index: \(index) is greater than array or this is not an Array type."))
+            return JSONDec(createError("index: \(index) is greater than array or this is not an Array type."))
         }
     }
     ///Dictionary access support
-    open subscript(key: String) -> JSONDecoder {
+    open subscript(key: String) -> JSONDec {
         get {
             if let dict = self.value as? NSDictionary {
                 if let value: Any = dict[key] {
-                    return value as! JSONDecoder
+                    return value as! JSONDec
                 }
             }
-            return JSONDecoder(createError("key: \(key) does not exist or this is not a Dictionary type"))
+            return JSONDec(createError("key: \(key) does not exist or this is not a Dictionary type"))
         }
     }
     ///private method to create an error
@@ -259,5 +259,5 @@ open class JSONDecoder {
 
 ///Implement this protocol on all objects you want to use JSONJoy with
 public protocol JSONJoy {
-    init(_ decoder: JSONDecoder) throws
+    init(_ decoder: JSONDec) throws
 }
