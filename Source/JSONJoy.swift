@@ -71,7 +71,9 @@ open class JSONDec {
     }
     ///treat the value as a bool
     open var bool: Bool {
-        if let str = self.string {
+        if let val = self.value as? Bool {
+            return val
+        } else if let str = self.string {
             let lower = str.lowercased()
             if lower == "true" || Int(lower) > 0 {
                 return true
